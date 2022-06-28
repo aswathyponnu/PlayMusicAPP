@@ -12,6 +12,7 @@
         android:padding="@dimen/vertical_margin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
+
         <TextView
             android:hint="@string/file_name"
             android:id="@+id/tvTitle"
@@ -22,6 +23,13 @@
             android:id="@+id/imvPlay"
             android:layout_alignParentEnd="true"
             android:src="@drawable/ic_play_circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <SeekBar
+            android:layout_alignParentBottom="true"
+            android:layout_alignBottom="@id/tvTitle"
+            android:id="@+id/skBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </RelativeLayout>

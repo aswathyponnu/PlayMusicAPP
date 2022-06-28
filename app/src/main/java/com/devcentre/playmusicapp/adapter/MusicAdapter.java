@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,12 +19,15 @@ import com.devcentre.playmusicapp.model.MusicItem;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Handler;
 
 public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
 
     private List<MusicItem> musicItems;
     private Context context;
     private MediaPlayer mediaPlayer = new MediaPlayer();
+    private Handler handler;
+    private int mEndTime;
     private int currentHolder ;
 
     public MusicAdapter(Context context){
@@ -50,15 +54,19 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
         MusicItem item = musicItems.get(position);
         holder.title.setText(item.getTitle());
 
-        if (currentHolder == position ){
-            holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_pause));
-        }else{
+        if (holder.play.getTag().toString().equals("1")){
             holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_play_circle));
+        }else{
+            holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_pause));
         }
 
+        holder.seekBar.setVisibility(View.INVISIBLE);
+        holder.play.setTag(0);
 
         holder.play.setOnClickListener(view -> {
             try {
+
+                holder.play.setTag(1);
                 currentHolder = position;
                 if(mediaPlayer == null)
                     mediaPlayer = new MediaPlayer();
@@ -70,10 +78,21 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
                 Uri myUri = Uri.parse(item.getUri());
                 mediaPlayer.reset();
                 mediaPlayer.setDataSource(context, myUri);
-                mediaPlayer.prepare();
-                mediaPlayer.start();
+                mediaPlayer.prepareAsync();
+                //mediaPlayer.start();
+                mediaPlayer.setOnPreparedListener(mediaPlayer -> {
+                    mediaPlayer.start();
+                    mEndTime = mediaPlayer.getDuration();
+                    holder.seekBar.setVisibility(View.VISIBLE);
+                    holder.seekBar.setProgress(mEndTime);
+
+                    
+
+                });
+                mediaPlayer.setOnCompletionListener(MediaPlayer::stop);
 
                 holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_pause));
+
 
 
             } catch (IOException e) {
@@ -95,11 +114,15 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView title;
         public ImageView play;
+        public SeekBar seekBar;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.tvTitle);
             play = itemView.findViewById(R.id.imvPlay);
+            seekBar = itemView.findViewById(R.id.skBar);
+
+
         }
     }
 }
