@@ -13,22 +13,37 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <TextView
-            android:hint="@string/file_name"
-            android:id="@+id/tvTitle"
+        <ImageView
+            android:id="@+id/imgSide"
+            android:src="@drawable/ic_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <ImageView
-            android:id="@+id/imvPlay"
-            android:layout_alignParentEnd="true"
-            android:src="@drawable/ic_play_circle"
+        <RelativeLayout
+            android:id="@+id/rytMain"
+            android:layout_margin="5dp"
+            android:layout_toEndOf="@id/imgSide"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content">
+            <TextView
+                android:hint="@string/file_name"
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <ImageView
+                android:id="@+id/imvPlay"
+                android:layout_alignParentEnd="true"
+                android:src="@drawable/ic_play_circle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+
+        </RelativeLayout>
 
         <SeekBar
             android:layout_alignParentBottom="true"
-            android:layout_alignBottom="@id/tvTitle"
+            android:layout_alignBottom="@id/rytMain"
             android:id="@+id/skBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>

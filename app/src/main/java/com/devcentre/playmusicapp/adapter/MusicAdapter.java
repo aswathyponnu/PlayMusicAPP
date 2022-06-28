@@ -29,6 +29,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
     private Handler handler;
     private int mEndTime;
     private int currentHolder ;
+    private SeekBarUpdater seekBarUpdater;
 
     public MusicAdapter(Context context){
         this.context = context;
@@ -36,6 +37,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
 
     public void setMusicItems(List<MusicItem> musicItems) {
         this.musicItems = musicItems;
+        seekBarUpdater = new SeekBarUpdater();
     }
 
     @NonNull
@@ -54,6 +56,13 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
         MusicItem item = musicItems.get(position);
         holder.title.setText(item.getTitle());
 
+        if (position == currentHolder) {
+            seekBarUpdater.playingHolder = holder;
+            holder.seekBar.post(seekBarUpdater);
+        } else {
+            holder.seekBar.removeCallbacks(seekBarUpdater);
+            holder.seekBar.setProgress(0);
+        }
         if (holder.play.getTag().toString().equals("1")){
             holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_play_circle));
         }else{
@@ -84,11 +93,13 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
                     mediaPlayer.start();
                     mEndTime = mediaPlayer.getDuration();
                     holder.seekBar.setVisibility(View.VISIBLE);
-                    holder.seekBar.setProgress(mEndTime);
+                    holder.seekBar.setMax(mEndTime/1000);
 
                     
 
                 });
+
+
                 mediaPlayer.setOnCompletionListener(MediaPlayer::stop);
 
                 holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_pause));
@@ -110,7 +121,20 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
             return 0;
         return musicItems.size();
     }
+    private class SeekBarUpdater implements Runnable {
+        ViewHolder playingHolder;
 
+        @Override
+        public void run() {
+            if (null != mediaPlayer && playingHolder.getAdapterPosition() == currentHolder) {
+                playingHolder.seekBar.setMax(mediaPlayer.getDuration());
+                playingHolder.seekBar.setProgress(mediaPlayer.getCurrentPosition());
+                playingHolder.seekBar.postDelayed(this, 100);
+            } else {
+                playingHolder.seekBar.removeCallbacks(seekBarUpdater);
+            }
+        }
+    }
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView title;
         public ImageView play;
