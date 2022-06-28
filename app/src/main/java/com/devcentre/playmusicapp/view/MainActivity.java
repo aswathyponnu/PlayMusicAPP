@@ -1,19 +1,18 @@
 package com.devcentre.playmusicapp.view;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 
-import com.devcentre.playmusicapp.R;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.devcentre.playmusicapp.adapter.MusicAdapter;
 import com.devcentre.playmusicapp.databinding.ActivityMainBinding;
 import com.devcentre.playmusicapp.model.MusicItem;
@@ -33,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       // setContentView(R.layout.activity_main);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
         setContentView(view);
@@ -42,6 +40,25 @@ public class MainActivity extends AppCompatActivity {
         adapter = new MusicAdapter(this.getApplicationContext());
         binding.rvMusic.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         binding.rvMusic.setAdapter(adapter);
+
+        binding.rvMusic.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                LinearLayoutManager layoutManager = ((LinearLayoutManager)binding.rvMusic.getLayoutManager());
+                if(layoutManager != null){
+                    int pos = layoutManager.findLastCompletelyVisibleItemPosition();
+                    adapter.setLastVisibleItem(pos);
+                    adapter.notifyItemChanged(pos);
+                }
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
     }
 
     @Override
@@ -62,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
                 MusicItem musicItem = null;
                 if (result.getResultCode() == Activity.RESULT_OK) {
                     Intent data = result.getData();
-                    if (data != null) {
+                    if (data != null && data.getClipData() != null) {
                         for(int i = 0; i < data.getClipData().getItemCount(); i++) {
                             Uri uri = data.getClipData().getItemAt(i).getUri();
 
@@ -75,13 +92,15 @@ public class MainActivity extends AppCompatActivity {
                             musicItem.setPath(myFile.getAbsolutePath());
                             musicItem.setTitle(myFile.getName());
                             musicItems.add(musicItem);
+
+
                         }
                     }
-                    binding.tvHeader.setVisibility(View.INVISIBLE);
+                    if(musicItems !=null && musicItems.size() >0)
+                        binding.lytNotfound.setVisibility(View.GONE);
                     adapter.setMusicItems(musicItems);
+                   // binding.btnAdd.setText("Added (" + musicItems.size() + ") ");
                     binding.rvMusic.setAdapter(adapter);
-
-                    // doSomeOperations();
                 }
             });
 

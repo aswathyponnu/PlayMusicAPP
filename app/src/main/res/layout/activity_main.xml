@@ -1,43 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/collapsing_toolbar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.MainActivity">
+    android:fitsSystemWindows="true">
 
-    <ProgressBar
-        android:max="100"
-        android:id="@+id/pgBar"
-        style="@style/Widget.MaterialComponents.LinearProgressIndicator"
-        android:layout_alignParentTop="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <include layout="@layout/layout_toolbar"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_below="@id/pgBar"
-        android:layout_margin="@dimen/vertical_margin"
-        android:id="@+id/rvMusic"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <LinearLayout
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tvHeader"
-        android:layout_centerInParent="true"
+        <LinearLayout
+            android:layout_margin="@dimen/vertical_margin"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:id="@+id/lytNotfound"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:scaleType="fitCenter"
+                android:src="@drawable/nofound"
+                android:layout_width="250dp"
+                android:layout_height="250dp"/>
+            <TextView
+                android:layout_gravity="center"
+                android:text="@string/no_files_found"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMusic"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/vertical_margin"
+            android:layout_marginBottom="@dimen/vertical_margin" />
+
+
+
+    </LinearLayout>
+
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Audio!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="16dp"
+        app:icon="@drawable/ic_add"
+        android:text="@string/add_audio_files"
+        android:textColor="@color/black"
         android:id="@+id/btnAdd"
-        android:src="@drawable/ic_add"
-        android:layout_margin="@dimen/vertical_margin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-</RelativeLayout>
+        />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

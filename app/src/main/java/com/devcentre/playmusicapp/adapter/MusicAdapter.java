@@ -2,6 +2,7 @@ package com.devcentre.playmusicapp.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -16,28 +17,33 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.devcentre.playmusicapp.R;
 import com.devcentre.playmusicapp.model.MusicItem;
+import com.google.android.material.card.MaterialCardView;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Handler;
+import java.util.concurrent.TimeUnit;
 
-public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
+public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder> {
 
     private List<MusicItem> musicItems;
-    private Context context;
+    private final Context context;
     private MediaPlayer mediaPlayer = new MediaPlayer();
-    private Handler handler;
     private int mEndTime;
-    private int currentHolder ;
+    private int currentHolder = -1;
     private SeekBarUpdater seekBarUpdater;
+    private int lastVisibleItem;
 
-    public MusicAdapter(Context context){
+    public MusicAdapter(Context context) {
         this.context = context;
     }
 
     public void setMusicItems(List<MusicItem> musicItems) {
         this.musicItems = musicItems;
         seekBarUpdater = new SeekBarUpdater();
+    }
+
+    public void setLastVisibleItem(int lastVisibleItem) {
+        this.lastVisibleItem = lastVisibleItem;
     }
 
     @NonNull
@@ -55,55 +61,68 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
 
         MusicItem item = musicItems.get(position);
         holder.title.setText(item.getTitle());
+        holder.subtitle.setText("00 min, 00 sec");
 
-        if (position == currentHolder) {
-            seekBarUpdater.playingHolder = holder;
-            holder.seekBar.post(seekBarUpdater);
-        } else {
-            holder.seekBar.removeCallbacks(seekBarUpdater);
+        if (lastVisibleItem <= currentHolder || currentHolder != position ) {
+            if(mediaPlayer.isPlaying())
+                mediaPlayer.stop();
+
+            holder.seekBar.setEnabled(false);
             holder.seekBar.setProgress(0);
+            holder.seekBar.setVisibility(View.INVISIBLE);
+            holder.play.setImageResource(R.drawable.ic_play_circle);
+            holder.seekBar.removeCallbacks(seekBarUpdater);
+            holder.cardView.setCardBackgroundColor(Color.WHITE);
         }
-        if (holder.play.getTag().toString().equals("1")){
-            holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_play_circle));
-        }else{
-            holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_pause));
-        }
-
-        holder.seekBar.setVisibility(View.INVISIBLE);
-        holder.play.setTag(0);
 
         holder.play.setOnClickListener(view -> {
             try {
 
-                holder.play.setTag(1);
-                currentHolder = position;
-                if(mediaPlayer == null)
+                if (mediaPlayer == null)
                     mediaPlayer = new MediaPlayer();
 
-                if(mediaPlayer.isPlaying()) {
+                holder.cardView.setCardBackgroundColor(Color.LTGRAY);
+
+                notifyItemChanged(currentHolder);
+
+
+                if (mediaPlayer.isPlaying()) {
                     mediaPlayer.stop();
                 }
-
                 Uri myUri = Uri.parse(item.getUri());
                 mediaPlayer.reset();
                 mediaPlayer.setDataSource(context, myUri);
                 mediaPlayer.prepareAsync();
-                //mediaPlayer.start();
+                currentHolder = position;
+
                 mediaPlayer.setOnPreparedListener(mediaPlayer -> {
                     mediaPlayer.start();
+                    holder.play.setImageResource(R.drawable.ic_pause);
                     mEndTime = mediaPlayer.getDuration();
-                    holder.seekBar.setVisibility(View.VISIBLE);
-                    holder.seekBar.setMax(mEndTime/1000);
+                    holder.cardView.setCardBackgroundColor(Color.LTGRAY);
+                    String time = String.format("%02d min, %02d sec",
+                            TimeUnit.MILLISECONDS.toMinutes(mEndTime),
+                            TimeUnit.MILLISECONDS.toSeconds(mEndTime) -
+                                    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(mEndTime))
+                    );
 
-                    
+                    holder.subtitle.setText(time);
+                    holder.seekBar.setVisibility(View.VISIBLE);
+                    holder.seekBar.setMax(mEndTime / 1000);
+
+                    seekBarUpdater.playingHolder = holder;
+                    holder.seekBar.post(seekBarUpdater);
 
                 });
 
 
-                mediaPlayer.setOnCompletionListener(MediaPlayer::stop);
-
-                holder.play.setImageDrawable( context.getDrawable(R.drawable.ic_pause));
-
+                mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+                    mediaPlayer.stop();
+                    holder.play.setImageResource(R.drawable.ic_play_circle);
+                    holder.cardView.setCardBackgroundColor(Color.WHITE);
+                    holder.seekBar.removeCallbacks(seekBarUpdater);
+                    holder.seekBar.setProgress(0);
+                });
 
 
             } catch (IOException e) {
@@ -112,15 +131,44 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
         });
 
 
-
     }
 
     @Override
     public int getItemCount() {
-        if(musicItems == null)
+        if (musicItems == null)
             return 0;
         return musicItems.size();
     }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView title;
+        public TextView subtitle;
+        public ImageView play;
+        public SeekBar seekBar;
+        public MaterialCardView cardView;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            title = itemView.findViewById(R.id.tvTitle);
+            subtitle= itemView.findViewById(R.id.tvSubTitle);
+            play = itemView.findViewById(R.id.imvPlay);
+            seekBar = itemView.findViewById(R.id.skBar);
+            cardView = itemView.findViewById(R.id.cvMain);
+
+
+        }
+    }
+
     private class SeekBarUpdater implements Runnable {
         ViewHolder playingHolder;
 
@@ -133,20 +181,6 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.ViewHolder>{
             } else {
                 playingHolder.seekBar.removeCallbacks(seekBarUpdater);
             }
-        }
-    }
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView title;
-        public ImageView play;
-        public SeekBar seekBar;
-
-        public ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            title = itemView.findViewById(R.id.tvTitle);
-            play = itemView.findViewById(R.id.imvPlay);
-            seekBar = itemView.findViewById(R.id.skBar);
-
-
         }
     }
 }

@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">PlayMusicApp</string>
+    <string name="app_org">Dev Centre House</string>
     <string name="file_name">file name...</string>
+    <string name="add_audio_files">Add audio files</string>
+    <string name="no_files_found">No files found!!</string>
 </resources>
